@@ -65,7 +65,7 @@ def update_book(book_id):
         return jsonify({'success': False, 'error': 'Request must be JSON'}), HTTPStatus.BAD_REQUEST
 
     data = request.json
-    # Update only fields that are provided
+    
     if 'title' in data:
         book['title'] = data['title']
     if 'author' in data:
@@ -74,6 +74,15 @@ def update_book(book_id):
         book['year'] = data['year']
 
     return jsonify({'success': True, 'data': book}), HTTPStatus.OK
+
+@app.route('/api/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    book = find_book(book_id)
+    if not book:
+        return jsonify({'success': False, 'error': 'Book not found'}), HTTPStatus.NOT_FOUND
+    
+    books.remove(book)
+    return jsonify({'success': True, 'message': 'Book deleted successfully'}), HTTPStatus.OK
 
 if __name__ == '__main__':
     app.run(debug=True)
