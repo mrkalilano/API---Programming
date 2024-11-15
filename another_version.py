@@ -94,3 +94,21 @@ def update_book(book_id):
     conn.close()
 
     return jsonify({'success': True, 'message': 'Book updated successfully'}), HTTPStatus.OK
+
+@app.route('/api/books/<int:book_id>', methods=['DELETE'])
+def delete_book(book_id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM books WHERE id = %s", (book_id,))
+    affected_rows = cursor.rowcount
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    if affected_rows == 0:
+        return jsonify({'success': False, 'error': 'Book not found'}), HTTPStatus.NOT_FOUND
+
+    return jsonify({'success': True, 'message': 'Book deleted successfully'}), HTTPStatus.OK
+
+if __name__ == '__main__':
+    app.run(debug=True)
