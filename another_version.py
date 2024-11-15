@@ -60,3 +60,37 @@ def create_book():
     conn.close()
 
     return jsonify({'success': True, 'data': {'id': new_book_id, **data}}), HTTPStatus.CREATED
+
+@app.route('/api/books/<int:book_id>', methods=['PUT'])
+def update_book(book_id):
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Request must be JSON'}), HTTPStatus.BAD_REQUEST
+
+    data = request.json
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM books WHERE id = %s", (book_id,))
+    book = cursor.fetchone()
+
+    if not book:
+        cursor.close()
+        conn.close()
+        return jsonify({'success': False, 'error': 'Book not found'}), HTTPStatus.NOT_FOUND
+
+    update_fields = []
+    update_values = []
+    for field in ['title', 'author', 'year']:
+        if field in data:
+            update_fields.append(f"{field} = %s")
+            update_values.append(data[field])
+
+    if update_fields:
+        cursor.execute(f"""
+            UPDATE books SET {', '.join(update_fields)} WHERE id = %s
+        """, (*update_values, book_id))
+        conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({'success': True, 'message': 'Book updated successfully'}), HTTPStatus.OK
