@@ -12,3 +12,5 @@ DB_CONFIG = {
     'database': 'library'
 }
 
+def get_db_connection():
+    return mysql.connector.connect(**DB_CONFIG)
