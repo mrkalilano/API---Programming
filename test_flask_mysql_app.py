@@ -3,6 +3,17 @@ import json
 from another_version import app, get_db_connection
 
 class TestFlaskMySQLApp(unittest.TestCase):
+    def setUp(self):
+        self.client = app.test_client()
+        # Setup test database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("CREATE TEMPORARY TABLE books LIKE library.books")
+        cursor.execute("INSERT INTO books (title, author, year) VALUES ('Test Book', 'Test Author', 2024)")
+        conn.commit()
+        cursor.close()
+        conn.close()
+
     def test_get_books(self):
         response = self.client.get('/api/books')
         self.assertEqual(response.status_code, 200)

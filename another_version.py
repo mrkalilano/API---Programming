@@ -37,3 +37,26 @@ def get_book(book_id):
         return jsonify({'success': True, 'data': book}), HTTPStatus.OK
     return jsonify({'success': False, 'error': 'Book not found'}), HTTPStatus.NOT_FOUND
 
+@app.route('/api/books', methods=['POST'])
+def create_book():
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Request must be JSON'}), HTTPStatus.BAD_REQUEST
+
+    data = request.json
+    required_fields = ['title', 'author', 'year']
+    for field in required_fields:
+        if field not in data:
+            return jsonify({'success': False, 'error': f'{field} is required'}), HTTPStatus.BAD_REQUEST
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO books (title, author, year)
+        VALUES (%s, %s, %s)
+    """, (data['title'], data['author'], data['year']))
+    conn.commit()
+    new_book_id = cursor.lastrowid
+    cursor.close()
+    conn.close()
+
+    return jsonify({'success': True, 'data': {'id': new_book_id, **data}}), HTTPStatus.CREATED
